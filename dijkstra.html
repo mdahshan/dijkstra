@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Shortest Path using Dijkstra's Algorithm</title>
+<link rel="stylesheet" type="text/css" href="dijkstra.css">
+<!-- By Mostafa Dahshan <mdahshan@outlook.com> -->
+</head>
+<body>
+
+<svg width="640" height="480" version="1.1" id="shortestPathSvg" xmlns="http://www.w3.org/2000/svg">
+	<g id="glink"></g>
+	<g id="gnode"></g>
+</svg>
+<br>
+<button id="savesvgbutton">Save graph</button>
+<table>
+	<tr>
+		<td><input type="radio" name="radWorkMode" value="drawNode" checked=""></td>
+		<td>Draw node</td>
+		<td><input type="radio" name="radWorkMode" value="drawLink"></td>
+		<td>Draw link</td>
+		<td><input type="radio" name="radWorkMode" value="setStart"></td>
+		<td>Set Start</td>
+	</tr>
+	<tr>
+		<td><input type="radio" name="radWorkMode" value="delNodeLink"></td>
+		<td>Delete node or link</td>
+		<td><input type="radio" name="radWorkMode" value="setCostLabel"></td>
+		<td>Set cost or label</td>
+		<td>&nbsp;</td>
+		<td>&nbsp;</td>
+	</tr>
+</table>
+
+<table id="dijkstraSteps"></table>
+
+<script src="dijkstra.js"></script>
+
+<h1>Dijkstra's Algorithm Solver</h1>
+<p>By <a href="https://github.com/mdahshan">Mostafa Dahshan</a>
+<h2>Usage</h2>
+<ul>
+<li>While <b>Draw node</b> is selected, click anywhere in the canvas to create a node.</li>
+<li>To draw a link between two nodes, select the <b>Draw link</b> radio button, then click on the nodes you want to connect.</li>
+<li>To change the cost or node label, click on the cost or the label while <b>Set cost or label</b> radio button is selected.</li>
+<li>Finally, to run the algorithm, select <b>Set Start</b> then click on the starting node.</li>
+</ul>
+
+</body>
+</html>
