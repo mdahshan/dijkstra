@@ -9,23 +9,23 @@
 <body>
 
 <svg width="640" height="480" version="1.1" id="shortestPathSvg" xmlns="http://www.w3.org/2000/svg">
-	<g id="glink"></g>
-	<g id="gnode"></g>
+	<g id="gedge"></g>
+	<g id="gvertex"></g>
 </svg>
 <br>
 <button id="savesvgbutton">Save graph</button>
 <table>
 	<tr>
-		<td><input type="radio" name="radWorkMode" value="drawNode" checked=""></td>
-		<td>Draw node</td>
-		<td><input type="radio" name="radWorkMode" value="drawLink"></td>
-		<td>Draw link</td>
+		<td><input type="radio" name="radWorkMode" value="drawVertex" checked=""></td>
+		<td>Draw vertex</td>
+		<td><input type="radio" name="radWorkMode" value="drawEdge"></td>
+		<td>Draw edge</td>
 		<td><input type="radio" name="radWorkMode" value="setStart"></td>
 		<td>Set Start</td>
 	</tr>
 	<tr>
-		<td><input type="radio" name="radWorkMode" value="delNodeLink"></td>
-		<td>Delete node or link</td>
+		<td><input type="radio" name="radWorkMode" value="delVertexEdge"></td>
+		<td>Delete vertex or edge</td>
 		<td><input type="radio" name="radWorkMode" value="setCostLabel"></td>
 		<td>Set cost or label</td>
 		<td>&nbsp;</td>
@@ -35,17 +35,42 @@
 
 <table id="dijkstraSteps"></table>
 
+<!-- The Modal -->
+<div id="divEdgeCost" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content">
+    <span class="close" onclick="closeDialogEdgeCost()">&times;</span>
+    <label>Edge Cost</label>
+        <input type="number" maxlength="4" required="required" autocomplete="off" min="1" max="1000" name="inputEdgeCost" id="inputEdgeCost">
+        <button id="btnSetEdgeCost">Set value</button>
+        
+  </div>
+</div>
+
+<div id="divVertexLabel" class="modal">
+  <!-- Modal content -->
+  <div class="modal-content">
+    <span class="close" onclick="closeDialogVertexLabel()">&times;</span>
+    <label>Vertex Label</label>
+        <input type="text" maxlength="1" required="required" autocomplete="off" name="inputVertexLabel" id="inputVertexLabel">
+        <button id="btnSetVertexLabel">Set value</button>
+        
+  </div>
+</div>
+
+
 <script src="dijkstra.js"></script>
 
 <h1>Dijkstra's Algorithm Solver</h1>
 <p>By <a href="https://github.com/mdahshan">Mostafa Dahshan</a>
 <h2>Usage</h2>
 <ul>
-<li>While <b>Draw node</b> is selected, click anywhere in the canvas to create a node.</li>
-<li>To draw a link between two nodes, select the <b>Draw link</b> radio button, then click on the nodes you want to connect.</li>
-<li>To change the cost or node label, click on the cost or the label while <b>Set cost or label</b> radio button is selected.</li>
-<li>Finally, to run the algorithm, select <b>Set Start</b> then click on the starting node.</li>
+<li>While <b>Draw vertex</b> is selected, click anywhere in the canvas to create a vertex.</li>
+<li>To draw an edge between two vertices, select the <b>Draw edge</b> radio button, then click on the vertices you want to connect.</li>
+<li>To change the cost or vertex label, click on the cost or the label while <b>Set cost or label</b> radio button is selected.</li>
+<li>Finally, to run the algorithm, select <b>Set Start</b> then click on the starting vertex.</li>
 </ul>
+
 
 </body>
 </html>

@@ -2,43 +2,43 @@
 //By Mostafa Dahshan <mdahshan@outlook.com>
 
 var svg = document.getElementById('shortestPathSvg'),
-    glink = document.getElementById('glink'),
-    gnode = document.getElementById('gnode'),
+    gedge = document.getElementById('gedge'),
+    gvertex = document.getElementById('gvertex'),
     saveButton = document.getElementById('savesvgbutton'),
     svgns = "http://www.w3.org/2000/svg",
-    isDrawingLink = false,
-    linkNode1 = null,
-    linkNode2 = null,
-    nodes = document.getElementsByTagName("circle"),
-    links = document.getElementsByTagName("line"),
+    isDrawingEdge = false,
+    edgeVertex1 = null,
+    edgeVertex2 = null,
+    vertices = document.getElementsByTagName("circle"),
+    edges = document.getElementsByTagName("line"),
     texts = document.getElementsByTagName("text"),
     nextLabelCode= 65; //65='A' ,  97='a'
 
 
-var markedNodes = [],
+var markedVertices = [],
     table = document.getElementById("dijkstraSteps");
 
 
 
-const   nodeRadius = 20,
-        nodeLabelSize = "16pt",
-        nodeColor = "white",
-        nodeBorderColor = "black",
-        startNodeColor = "magenta",
-        markedNodeColor = "blue",
-        markedLinkColor = "cyan",
-        nodeLabelColor = "black",
-        linkColor = "darkgrey",
-        linkWidth = 2,
-        linkLabelColor= "black",
-        linkLabelSize = "20pt",
+const   vertexRadius = 20,
+        vertexLabelSize = "16pt",
+        vertexColor = "white",
+        vertexBorderColor = "black",
+        startVertexColor = "magenta",
+        markedVertexColor = "blue",
+        markedEdgeColor = "cyan",
+        vertexLabelColor = "black",
+        edgeColor = "darkgrey",
+        edgeWidth = 6,
+        edgeLabelColor= "black",
+        edgeLabelSize = "20pt",
         INF=100000;
 
 
 svg.onmousedown = mouseClick;
 saveButton.onmousedown = saveSvgFile;
-//glink.onmousedown = mouseClick;
-//gnode.onmousedown = mouseClick;
+//gedge.onmousedown = mouseClick;
+//gvertex.onmousedown = mouseClick;
 
 function mouseClick (e) {
 
@@ -52,60 +52,54 @@ function mouseClick (e) {
         }
 
     switch (workMode) {
-        case "drawNode":
+        case "drawVertex":
             if(e.target==svg){
-                    drawNode(e.clientX, e.clientY);
+                    drawVertex(e.clientX, e.clientY);
                 }
                 break;
 
-        case "drawLink":
+        case "drawEdge":
             if(e.target.nodeName=="circle") {
-                if(!isDrawingLink){
-                    linkNode1 = e.target;
-                    isDrawingLink=true;
+                if(!isDrawingEdge){
+                    edgeVertex1 = e.target;
+                    isDrawingEdge=true;
                 }
-                else if(e.target != linkNode1){ //link cannot be from a node to itself
-                    linkNode2 = e.target;
-                    drawLink(linkNode1, linkNode2);
-                    linkNode1 = null;
-                    linkNode2 = null;
-                    isDrawingLink = false;
+                else if(e.target != edgeVertex1){ //edge cannot be from a vertex to itself
+                    edgeVertex2 = e.target;
+                    drawEdge(edgeVertex1, edgeVertex2);
+                    edgeVertex1 = null;
+                    edgeVertex2 = null;
+                    isDrawingEdge = false;
                 }
             }
             break;
 
-        case "delNodeLink":
+        case "delVertexEdge":
             if(e.target.nodeName == "circle") 
-                delNode(e.target);
+                delVertex(e.target);
 
             if(e.target.nodeName=="line")
-                 delLink(e.target);
+                 delEdge(e.target);
             break;     
 
         case "setCostLabel":
             if(e.target.nodeName == "circle") {
-				var node = e.target;
-                var label=window.prompt("Enter node label",node.label);
-                if(!label)
-                    label = node.label;
-                setNodeLabel(node, label);
+				var vertex = e.target;
+                showDialogVertexLabel(vertex);
             }
 
             if(e.target.nodeName == "line") {
-				var link = e.target;
-                var cost=parseInt(window.prompt("Enter link cost", link.cost));
-                if(!cost)
-                    cost = link.cost;
-                setLinkCost(link, cost);
+				var edge = e.target;
+                showDialogEdgeCost(edge);
             }
             break;     
 
         case "setStart":
             if(e.target.nodeName == "circle") {
-                setNodeNeighbors();
-                var node = e.target;
-                node.isSource = true;
-                dijkstra(node);
+                setVertexNeighbors();
+                var vertex = e.target;
+                vertex.isSource = true;
+                dijkstra(vertex);
             }
             break;     
 
@@ -115,146 +109,151 @@ function mouseClick (e) {
 
 
 
-function drawNode(px, py){
+function drawVertex(px, py){
 
-    var node = document.createElementNS(svgns, "circle");
-    node.setAttributeNS(null, "cx", px);
-    node.setAttributeNS(null, "cy", py);
-    node.setAttributeNS(null, "r",  nodeRadius);
-    node.setAttributeNS(null, "fill", nodeColor);
-    node.setAttributeNS(null, "stroke", nodeBorderColor);
-    gnode.appendChild(node);
+    var vertex = document.createElementNS(svgns, "circle");
+    vertex.setAttributeNS(null, "cx", px);
+    vertex.setAttributeNS(null, "cy", py);
+    vertex.setAttributeNS(null, "r",  vertexRadius);
+    vertex.setAttributeNS(null, "fill", vertexColor);
+    vertex.setAttributeNS(null, "stroke", vertexBorderColor);
+    vertex.style["cursor"] = "pointer";
+     
+    
+    gvertex.appendChild(vertex);
 
   
-    node.label =  String.fromCharCode(nextLabelCode++);
-    node.labelText = document.createElementNS(svgns, "text");
-    node.labelText.setAttribute("x", node.cx.baseVal.value);
-    node.labelText.setAttribute("y", node.cy.baseVal.value);
-    node.labelText.setAttribute("text-anchor", "middle");
-    node.labelText.setAttribute("alignment-baseline", "central");
-    node.labelText.setAttribute("font-size", nodeLabelSize);
-    node.labelText.setAttribute("fill", nodeLabelColor);
-    node.labelText.textContent=node.label;
-    node.labelText.node=node;
-    node.labelText.boundTo="node";
-    gnode.appendChild(node.labelText);
+    vertex.label =  String.fromCharCode(nextLabelCode++);
+    vertex.labelText = document.createElementNS(svgns, "text");
+    vertex.labelText.setAttribute("x", vertex.cx.baseVal.value);
+    vertex.labelText.setAttribute("y", vertex.cy.baseVal.value);
+    vertex.labelText.setAttribute("text-anchor", "middle");
+    vertex.labelText.setAttribute("alignment-baseline", "central");
+    vertex.labelText.setAttribute("font-size", vertexLabelSize);
+    vertex.labelText.setAttribute("fill", vertexLabelColor);
+    vertex.labelText.textContent=vertex.label;
+    vertex.labelText.vertex=vertex;
+    vertex.labelText.boundTo="vertex";
+    gvertex.appendChild(vertex.labelText);
 
 
-    node.links=[];
-    node.neighbors=[];
-    node.isSource=false;
-    node.cost=0;
-    node.previous = -1;
+    vertex.edges=[];
+    vertex.neighbors=[];
+    vertex.isSource=false;
+    vertex.cost=0;
+    vertex.previous = -1;
 }
 
-function drawLink(node1, node2) {
-    var x1 = node1.getAttributeNS(null, "cx"),
-        y1 = node1.getAttributeNS(null, "cy"),
-        x2 = node2.getAttributeNS(null, "cx"),
-        y2 = node2.getAttributeNS(null, "cy"),
-        linkExists = false;
+function drawEdge(vertex1, vertex2) {
+    var x1 = vertex1.getAttributeNS(null, "cx"),
+        y1 = vertex1.getAttributeNS(null, "cy"),
+        x2 = vertex2.getAttributeNS(null, "cx"),
+        y2 = vertex2.getAttributeNS(null, "cy"),
+        edgeExists = false;
 
-    //check if a previous link exists between the same nodes
-    for(var i=0; i<links.length; i++){
-        if( links[i].x1.baseVal.value == parseInt(x1) && links[i].x2.baseVal.value == parseInt(x2) &&
-            links[i].y1.baseVal.value == parseInt(y1) && links[i].y2.baseVal.value == parseInt(y2)) {
-                linkExists = true;
+    //check if a previous edge exists between the same vertices
+    for(var i=0; i<edges.length; i++){
+        if( edges[i].x1.baseVal.value == parseInt(x1) && edges[i].x2.baseVal.value == parseInt(x2) &&
+            edges[i].y1.baseVal.value == parseInt(y1) && edges[i].y2.baseVal.value == parseInt(y2)) {
+                edgeExists = true;
                 break;
             }
     }
-    if(linkExists) {
-        alert("Link Exists!")
+    if(edgeExists) {
+        alert("Edge Exists!")
     }
     else {
    
-        var link = document.createElementNS(svgns, "line");
-        link.setAttributeNS(null, "x1", x1);
-        link.setAttributeNS(null, "x2", x2);
-        link.setAttributeNS(null, "y1", y1);
-        link.setAttributeNS(null, "y2", y2);
-        link.setAttributeNS(null, "stroke", linkColor);
-        link.setAttributeNS(null, "stroke-width", linkWidth);
-        glink.appendChild(link);
+        var edge = document.createElementNS(svgns, "line");
+        edge.setAttributeNS(null, "x1", x1);
+        edge.setAttributeNS(null, "x2", x2);
+        edge.setAttributeNS(null, "y1", y1);
+        edge.setAttributeNS(null, "y2", y2);
+        edge.setAttributeNS(null, "stroke", edgeColor);
+        edge.setAttributeNS(null, "stroke-width", edgeWidth);
+        gedge.appendChild(edge);
 
-        link.fromNode=node1;
-        link.toNode=node2;
+        edge.fromVertex=vertex1;
+        edge.toVertex=vertex2;
 
-        link.cost = 1;
-        link.costText = document.createElementNS(svgns, "text");
-        link.costText.setAttribute("x", 0.5*(link.x1.baseVal.value+link.x2.baseVal.value));
-        link.costText.setAttribute("y", 0.5*(link.y1.baseVal.value+link.y2.baseVal.value));
-        link.costText.setAttribute("text-anchor", "middle");
-        link.costText.setAttribute("alignment-baseline", "central");
-        link.costText.setAttribute("font-size", linkLabelSize);
-        link.costText.setAttribute("fill", linkLabelColor);
-        link.costText.textContent=link.cost;
-        link.costText.link=link;
-        link.costText.boundTo="link";
-        glink.appendChild(link.costText);
-
-        node1.links.push(link);
-        node2.links.push(link);
+        edge.cost = 1;
+        edge.costText = document.createElementNS(svgns, "text");
+        edge.costText.setAttribute("x", 0.5*(edge.x1.baseVal.value+edge.x2.baseVal.value));
+        edge.costText.setAttribute("y", 0.5*(edge.y1.baseVal.value+edge.y2.baseVal.value));
+        edge.costText.setAttribute("text-anchor", "middle");
+        edge.costText.setAttribute("alignment-baseline", "central");
+        edge.costText.setAttribute("font-size", edgeLabelSize);
+        edge.costText.setAttribute("fill", edgeLabelColor);
+        edge.costText.textContent=edge.cost;
+        edge.costText.edge=edge;
+        edge.costText.boundTo="edge";
+        
+        edge.style["cursor"] = "pointer";
+        
+        gedge.appendChild(edge.costText);
+        vertex1.edges.push(edge);
+        vertex2.edges.push(edge);
     }
     
 }
 
-function setLinkCost(link, cost) {
-    link.cost = cost;
-    link.costText.textContent=link.cost;
+function setEdgeCost(edge, cost) {
+    edge.cost = cost;
+    edge.costText.textContent=edge.cost;
 }
 
 
-function setNodeLabel (node, label) {
-    node.label =  label;
-    node.labelText.textContent=node.label;
+function setVertexLabel (vertex, label) {
+    vertex.label =  label;
+    vertex.labelText.textContent=vertex.label;
 }
 
-function delNode(node){
-    while(node.links.length > 0)
-        delLink(node.links[0]);
+function delVertex(vertex){
+    while(vertex.edges.length > 0)
+        delEdge(vertex.edges[0]);
     
-    gnode.removeChild(node.labelText);
-    gnode.removeChild(node);
+    gvertex.removeChild(vertex.labelText);
+    gvertex.removeChild(vertex);
 }
 
-function delLink(link) {
-    //delete link.fromNode.links;
-    for(var i=0; i< link.fromNode.links.length; i++)
-        if(link.fromNode.links[i] == link) {
-            link.fromNode.links.splice(i,1);
+function delEdge(edge) {
+    //delete edge.fromVertex.edges;
+    for(var i=0; i< edge.fromVertex.edges.length; i++)
+        if(edge.fromVertex.edges[i] == edge) {
+            edge.fromVertex.edges.splice(i,1);
             break;
         }
 
-    //delete link.toNode.links
-    for(var i=0; i< link.toNode.links.length; i++)
-        if(link.toNode.links[i] == link) {
-            link.toNode.links.splice(i,1);
+    //delete edge.toVertex.edges
+    for(var i=0; i< edge.toVertex.edges.length; i++)
+        if(edge.toVertex.edges[i] == edge) {
+            edge.toVertex.edges.splice(i,1);
             break;
         }
-    glink.removeChild(link.costText);
-    glink.removeChild(link);
+    gedge.removeChild(edge.costText);
+    gedge.removeChild(edge);
 }
 
 
 
-function setNodeNeighbors(){
-    for(var i =0; i< nodes.length; i++)
-        for(var j=0; j< nodes[i].links.length; j++) {
-            if(nodes[i].links[j].fromNode == nodes[i])
-                nodes[i].neighbors.push(nodes[i].links[j].toNode);
+function setVertexNeighbors(){
+    for(var i =0; i< vertices.length; i++)
+        for(var j=0; j< vertices[i].edges.length; j++) {
+            if(vertices[i].edges[j].fromVertex == vertices[i])
+                vertices[i].neighbors.push(vertices[i].edges[j].toVertex);
             else
-                nodes[i].neighbors.push(nodes[i].links[j].fromNode);
+                vertices[i].neighbors.push(vertices[i].edges[j].fromVertex);
         }
 
 }
 
 
 function redraw() {
-    for(var i=0; k<links.length; i++)
-        svg.appendChild(links[i]);
+    for(var i=0; k<edges.length; i++)
+        svg.appendChild(edges[i]);
 
-    for(var j=0; k<nodes.length; j++)
-        svg.appendChild(nodes[j]);
+    for(var j=0; k<vertices.length; j++)
+        svg.appendChild(vertices[j]);
 
     for(var k=0; k<texts.length; k++)
         svg.appendChild(texts[k]);
@@ -276,26 +275,26 @@ function dijkstra(source) {
     var cell = row.insertCell(0);
     cell.innerHTML = "Round";
 
-    setNodeNeighbors();
+    setVertexNeighbors();
 
-    for(i=0; i< nodes.length; i++){
-        nodes[i].cost = INF;
-        nodes[i].previous = null; 
-        nodes[i].marked = false;
-        nodes[i].markedRound = INF;
+    for(i=0; i< vertices.length; i++){
+        vertices[i].cost = INF;
+        vertices[i].previous = null; 
+        vertices[i].marked = false;
+        vertices[i].markedRound = INF;
         
         //interface begin
         cell = row.insertCell(i+1);
-        cell.innerHTML=nodes[i].label;
-        if(nodes[i]==source)
-            nodes[i].setAttribute("fill", startNodeColor);
+        cell.innerHTML=vertices[i].label;
+        if(vertices[i]==source)
+            vertices[i].setAttribute("fill", startVertexColor);
         else
-            nodes[i].setAttribute("fill", nodeColor);
+            vertices[i].setAttribute("fill", vertexColor);
 
         //interface end
     }
 
-    markedNodes =[];
+    markedVertices =[];
     source.cost = 0;
 
     //interface begin
@@ -303,54 +302,54 @@ function dijkstra(source) {
     row=table.insertRow(tr);
     cell=row.insertCell(0);
     cell.innerHTML = round;
-    for(i=0; i< nodes.length; i++){
+    for(i=0; i< vertices.length; i++){
         cell=row.insertCell(i+1);
-        cell.innerHTML=(nodes[i].cost==INF)?'∞':nodes[i].cost;
-        cell.innerHTML+=', '+ ((nodes[i].previous==null)?'-':nodes[i].previous.label);
+        cell.innerHTML=(vertices[i].cost==INF)?'∞':vertices[i].cost;
+        cell.innerHTML+=', '+ ((vertices[i].previous==null)?'-':vertices[i].previous.label);
     }
     //interface end
 
     do {
-        //find node with minimum cost
+        //find vertex with minimum cost
         var min = INF;
 
-        for(i=0; i< nodes.length; i++)
-            if(nodes[i].cost < min && !nodes[i].marked) {
-                m = i; min = nodes[m].cost;
+        for(i=0; i< vertices.length; i++)
+            if(vertices[i].cost < min && !vertices[i].marked) {
+                m = i; min = vertices[m].cost;
             }
 
-        nodes[m].marked = true; nodes[m].markedRound=round;
-        markedNodes.push(nodes[m]);
+        vertices[m].marked = true; vertices[m].markedRound=round;
+        markedVertices.push(vertices[m]);
         //relax edges
-        for(j=0; j< nodes[m].links.length; j++){
-            neighbor= (nodes[m].links[j].fromNode == nodes[m])? nodes[m].links[j].toNode : neighbor=nodes[m].links[j].fromNode;
-            link=nodes[m].links[j];
+        for(j=0; j< vertices[m].edges.length; j++){
+            neighbor= (vertices[m].edges[j].fromVertex == vertices[m])? vertices[m].edges[j].toVertex : neighbor=vertices[m].edges[j].fromVertex;
+            edge=vertices[m].edges[j];
 
-            if(neighbor.cost > nodes[m].cost + link.cost){
-                neighbor.cost = nodes[m].cost + link.cost;
-                neighbor.previous = nodes[m];
+            if(neighbor.cost > vertices[m].cost + edge.cost){
+                neighbor.cost = vertices[m].cost + edge.cost;
+                neighbor.previous = vertices[m];
             }
         }
 
         //interface begin
         tr++;round++;
-        if(markedNodes.length < nodes.length) {
+        if(markedVertices.length < vertices.length) {
             row=table.insertRow(tr);
             cell=row.insertCell(0);
             cell.innerHTML = round;
 
-            for(i=0; i< nodes.length; i++){
+            for(i=0; i< vertices.length; i++){
                 cell=row.insertCell(i+1);
-                if(nodes[i].markedRound > round){
-                    cell.innerHTML=(nodes[i].cost==INF)?'∞':nodes[i].cost;
-                    cell.innerHTML+=', '+ ((nodes[i].previous==null)?'-':nodes[i].previous.label);
+                if(vertices[i].markedRound > round){
+                    cell.innerHTML=(vertices[i].cost==INF)?'∞':vertices[i].cost;
+                    cell.innerHTML+=', '+ ((vertices[i].previous==null)?'-':vertices[i].previous.label);
                 }
             }
         }
         
         //interface end
 
-    } while(markedNodes.length < nodes.length);
+    } while(markedVertices.length < vertices.length);
 
     //color tree
 }
@@ -377,4 +376,51 @@ function downloadFile(filename, content) {
     else {
         pom.click();
     }
+}
+
+
+//Modal
+
+// Credit: https://www.w3schools.com/howto/howto_css_modals.asp 
+
+var dialogEdgeCost = document.getElementById('divEdgeCost');
+var dialogVertexLabel = document.getElementById('divVertexLabel');
+
+
+function showDialogEdgeCost (edge) {
+    var inputEdgeCost = document.getElementById("inputEdgeCost");
+    var btnSetEdgeCost = document.getElementById("btnSetEdgeCost");
+
+    inputEdgeCost.value = edge.cost;
+    dialogEdgeCost.style.display = "block";
+    
+    btnSetEdgeCost.onclick = function () {
+        dialogEdgeCost.style.display = "none";
+        var cost=parseInt(inputEdgeCost.value);
+        if(cost)
+            setEdgeCost(edge, cost);
+    }
+}
+
+function closeDialogEdgeCost() {
+    dialogEdgeCost.style.display = "none";
+}
+
+function showDialogVertexLabel (vertex) {
+    var inputVertexLabel = document.getElementById("inputVertexLabel");
+    var btnSetVertexLabel = document.getElementById("btnSetVertexLabel");
+
+    inputVertexLabel.value = vertex.label;
+    dialogVertexLabel.style.display = "block";
+    
+    btnSetVertexLabel.onclick = function () {
+        dialogVertexLabel.style.display = "none";
+        var label = inputVertexLabel.value;
+        if(label)
+            setVertexLabel(vertex, label);
+    }
+}
+
+function closeDialogVertexLabel() {
+    dialogVertexLabel.style.display = "none";
 }

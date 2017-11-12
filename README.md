@@ -1,21 +1,20 @@
-<h1>Dijkstra's algorithm</h1>
+<h1>Dijkstra's algorithm Solver</h1>
 <p>Draw a graph and calculate the shortest path table for any source node. You can save the graph as an SVG file.</p>
 
 <h2>Files</h2>
 <ul>
-<li>dijkstra.js contains the JavaScript code.</li>
-<li>dijkstra.html contains a demo page.</li>
-<li>dijkstra.css contains the stylesheet.</li>
+<li>dijkstra.js contains the JavaScript code</li>
+<li>dijkstra.html contains a demo page</li>
+<li>dijkstra.css contains the stylesheet</li>
 </ul>
 
-<h1>Notes</h1>
+<h2>Notes</h2>
 <ul>
-<li>Might not work properly on mobile browsers due to the use of window.prompt().</li>
-<li>Using negative link costs is not supported.</li>
+<li>Using negative edge costs is not supported</li>
 <li>A demo is available at http://mdahshan.unixcab.org/dijkstra</li>
 </ul>
 
-<h1>References</h1>
+<h2>References</h2>
 <ol>
 <li>Computer Networks, 5E, by Andrew S. Tanenbaum</li>
 <li>https://developer.mozilla.org/en/docs/Web/SVG/Element/textPath</li>
