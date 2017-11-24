@@ -43,29 +43,36 @@ saveButton.onmousedown = saveSvgFile;
 function mouseClick (e) {
 
     var radWorkMode=document.getElementsByName("radWorkMode"),
-        workMode = null;
+        workMode = null,
+        clickTarget = null;
     
     for(var i=0; i< radWorkMode.length; i++)
         if(radWorkMode[i].checked){
             workMode = radWorkMode[i].value;
             break;
         }
+    
+    if(e.target.nodeName == "text")
+        clickTarget=e.target.under;
+    else
+        clickTarget = e.target;
+    
 
     switch (workMode) {
         case "drawVertex":
-            if(e.target==svg){
+            if(clickTarget==svg){
                     drawVertex(e.clientX, e.clientY);
                 }
                 break;
 
         case "drawEdge":
-            if(e.target.nodeName=="circle") {
+            if(clickTarget.nodeName=="circle") {
                 if(!isDrawingEdge){
-                    edgeVertex1 = e.target;
+                    edgeVertex1 = clickTarget;
                     isDrawingEdge=true;
                 }
-                else if(e.target != edgeVertex1){ //edge cannot be from a vertex to itself
-                    edgeVertex2 = e.target;
+                else if(clickTarget != edgeVertex1){ //edge cannot be from a vertex to itself
+                    edgeVertex2 = clickTarget;
                     drawEdge(edgeVertex1, edgeVertex2);
                     edgeVertex1 = null;
                     edgeVertex2 = null;
@@ -75,29 +82,29 @@ function mouseClick (e) {
             break;
 
         case "delVertexEdge":
-            if(e.target.nodeName == "circle") 
-                delVertex(e.target);
+            if(clickTarget.nodeName == "circle") 
+                delVertex(clickTarget);
 
-            if(e.target.nodeName=="line")
-                 delEdge(e.target);
+            if(clickTarget.nodeName=="line")
+                 delEdge(clickTarget);
             break;     
 
         case "setCostLabel":
-            if(e.target.nodeName == "circle") {
-				var vertex = e.target;
+            if(clickTarget.nodeName == "circle") {
+				var vertex = clickTarget;
                 showDialogVertexLabel(vertex);
             }
 
-            if(e.target.nodeName == "line") {
-				var edge = e.target;
+            if(clickTarget.nodeName == "line") {
+				var edge = clickTarget;
                 showDialogEdgeCost(edge);
             }
             break;     
 
         case "setStart":
-            if(e.target.nodeName == "circle") {
+            if(clickTarget.nodeName == "circle") {
                 setVertexNeighbors();
-                var vertex = e.target;
+                var vertex = clickTarget;
                 vertex.isSource = true;
                 dijkstra(vertex);
             }
@@ -122,7 +129,7 @@ function drawVertex(px, py){
     
     gvertex.appendChild(vertex);
 
-  
+    
     vertex.label =  String.fromCharCode(nextLabelCode++);
     vertex.labelText = document.createElementNS(svgns, "text");
     vertex.labelText.setAttribute("x", vertex.cx.baseVal.value);
@@ -132,8 +139,9 @@ function drawVertex(px, py){
     vertex.labelText.setAttribute("font-size", vertexLabelSize);
     vertex.labelText.setAttribute("fill", vertexLabelColor);
     vertex.labelText.textContent=vertex.label;
-    vertex.labelText.vertex=vertex;
+    vertex.labelText.under=vertex;
     vertex.labelText.boundTo="vertex";
+    vertex.labelText.style["cursor"] = "pointer";
     gvertex.appendChild(vertex.labelText);
 
 
@@ -185,11 +193,11 @@ function drawEdge(vertex1, vertex2) {
         edge.costText.setAttribute("font-size", edgeLabelSize);
         edge.costText.setAttribute("fill", edgeLabelColor);
         edge.costText.textContent=edge.cost;
-        edge.costText.edge=edge;
+        edge.costText.under=edge;
         edge.costText.boundTo="edge";
-        
         edge.style["cursor"] = "pointer";
-        
+        edge.costText.style["cursor"] = "pointer";
+
         gedge.appendChild(edge.costText);
         vertex1.edges.push(edge);
         vertex2.edges.push(edge);
